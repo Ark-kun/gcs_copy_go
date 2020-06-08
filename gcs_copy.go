@@ -38,6 +38,15 @@ func copyFromGcsToLocal(ctx context.Context, srcBucket, srcPath, dstPath string)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Checking for a single blob object (the blob name might be prefix of another blob or directory)
+	srcObj := client.Bucket(srcBucket).Object(srcPath)
+	_, err = srcObj.Attrs(ctx)
+	if err == nil {
+		copyFileFromGcsToLocal(ctx, srcBucket, srcPath, dstPath)
+		return nil
+	}
+
 	it := client.Bucket(srcBucket).Objects(ctx, &storage.Query{
 		Prefix: srcPath,
 	})
@@ -165,6 +174,15 @@ func copyFromGcsToGcs(ctx context.Context, srcBucket, srcPath, dstBucket, dstPat
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Checking for a single blob object (the blob name might be prefix of another blob or directory)
+	srcObj := client.Bucket(srcBucket).Object(srcPath)
+	_, err = srcObj.Attrs(ctx)
+	if err == nil {
+		copyFileFromGcsToLocal(ctx, srcBucket, srcPath, dstPath)
+		return nil
+	}
+
 	it := client.Bucket(srcBucket).Objects(ctx, &storage.Query{
 		Prefix: srcPath,
 	})
