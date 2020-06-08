@@ -56,8 +56,6 @@ func copyFromGcsToLocal(ctx context.Context, srcBucket, srcPath, dstPath string)
 			copyFileFromGcsToLocal(ctx, srcBucket, srcFilePath, dstPath)
 		} else {
 			dstFilePath := filepath.Join(dstPath, relPath)
-			dstFileDir := filepath.Dir(dstFilePath)
-			os.MkdirAll(dstFileDir, os.ModePerm)
 			copyFileFromGcsToLocal(ctx, srcBucket, srcFilePath, dstFilePath)
 		}
 
@@ -77,6 +75,12 @@ func copyFileFromGcsToLocal(ctx context.Context, srcBucket, srcFilePath, dstFile
 		log.Fatal(err)
 	}
 	defer srcReader.Close()
+
+	dstFileDir := filepath.Dir(dstFilePath)
+	err = os.MkdirAll(dstFileDir, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	dstWriter, err := os.OpenFile(dstFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
@@ -225,8 +229,6 @@ func copyFromLocalToLocal(srcPath, dstPath string) {
 			}
 			if relFilePath != "." && !info.IsDir() {
 				dstFilePath := filepath.Join(dstPath, relFilePath)
-				dstFileDir := filepath.Dir(dstFilePath)
-				os.MkdirAll(dstFileDir, os.ModePerm)
 				copyFileFromLocalToLocal(srcFilePath, dstFilePath)
 			}
 			return nil
@@ -243,6 +245,11 @@ func copyFileFromLocalToLocal(srcFilePath, dstFilePath string) {
 		log.Fatal(err)
 	}
 
+	dstFileDir := filepath.Dir(dstFilePath)
+	err = os.MkdirAll(dstFileDir, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
 	dst, err := os.OpenFile(dstFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
